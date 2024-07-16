@@ -6,10 +6,19 @@ WORKDIR /app
 # Copy the entire codebase to the working directory
 COPY . .
 
+# Set necessary environment variables
+ENV NODE_ENV=production
+
 # Install dependencies and clean cache
 RUN rm -rf node_modules && \
-    NODE_ENV=production yarn install --prefer-offline --pure-lockfile --non-interactive --production=true && \
+    yarn install --prefer-offline --pure-lockfile --non-interactive --production=true && \
     yarn cache clean
+
+# Debugging step: List installed node modules
+RUN ls -alh node_modules
+
+# Debugging step: Show package.json
+RUN cat package.json
 
 # Build the project
 RUN yarn build-prod
