@@ -1,86 +1,19 @@
-name: CI/CD Pipeline
-
-on:
-  workflow_dispatch:
-  push:
-    branches:
-      - "main"
-
-permissions:
-  contents: read
-  packages: write
-
-env:
-  DOCKER_IMAGE_NAME: cargouidev  # Changed to lowercase
-  DOCKER_PORT: 8565
-
+name: GitHub Actions Demo
+run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+on: [push]
 jobs:
-  build:
+  Explore-GitHub-Actions:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-          registry: ghcr.io
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: ghcr.io/aqib05/project:${{ github.run_id }}  # Ensure repository name is in lowercase
-          builder: ${{ steps.qemu.outputs.name }}
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Print variables
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+      - name: List files in the repository
         run: |
-          echo "DOCKER_IMAGE_NAME: $DOCKER_IMAGE_NAME"
-          echo "DOCKER_PORT: $DOCKER_PORT"
-          echo "Github repository: ${{ github.repository }}"
-          echo "Github run ID: ${{ github.run_id }}"
-
-      - name: Execute SSH commands
-        uses: appleboy/ssh-action@master
-        env:
-          DOCKER_IMAGE_NAME: cargouidev  # Ensure it's the same lowercase as the environment variable
-          DOCKER_PORT: 8565
-        with:
-          host: ${{ secrets.HOST_NAME }}
-          username: root
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            echo "DOCKER_IMAGE_NAME: $DOCKER_IMAGE_NAME"
-            echo "DOCKER_PORT: $DOCKER_PORT"
-            echo "Github repository: ${{ github.repository }}"
-            echo "Github run ID: ${{ github.run_id }}"
-            docker login --password ${{ secrets.GITHUB_TOKEN }} --username ${{ github.actor }} ghcr.io
-            docker stop $DOCKER_IMAGE_NAME && docker rm $DOCKER_IMAGE_NAME || true
-            docker system prune -f
-            docker pull ghcr.io/aqib05/project:${{ github.run_id }}  # Ensure repository name is in lowercase
-            docker run -d --name $DOCKER_IMAGE_NAME --restart always -p $DOCKER_PORT:$DOCKER_PORT -i ghcr.io/aqib05/project:${{ github.run_id }}  # Ensure repository name is in lowercase
-
-      - name: Cache npm and Next.js files
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.npm
-            ${{ github.workspace }}/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
-          restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+          ls ${{ github.workspace }}
+      - run: echo "🍏 This job's status is ${{ job.status }}."
+      
